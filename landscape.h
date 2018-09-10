@@ -1,14 +1,32 @@
 uint8_t landscape[128];
 uint8_t heightmap[128];
-uint32_t offsetX;
+uint32_t offsetX, prevOffsetX;
+int32_t prevDelta;
+uint32_t score;
+
+const char *effect;
+
+void killActor( CycleActor &a ){
+    a.hide();
+    a.mode = 0;
+}
+
+bool common( CycleActor &a, bool kill ){
+    uint32_t sx = a.wx - offsetX;
+    a.x = sx;
+    bool oob = sx >= 0x8000;
+    if( oob && kill )
+	killActor(a);
+    return oob;
+}
 
 bool doPhysics( CycleActor &actor, bool flipped ){
 
-    uint32_t sx = actor.wx - offsetX;
-
-    actor.x = sx;
-    if( sx >= 0x8000 )
+    if( common(actor,false) )
 	return;
+
+    actor.y += actor.targetY << 4;
+    actor.targetY -= actor.targetY >> 4;
     
     bool contact;
     if( flipped )
@@ -24,12 +42,12 @@ bool doPhysics( CycleActor &actor, bool flipped ){
 	actor.yH = heightmap[ actor.xH ];
 
 	int16_t incline = (
-	    heightmap[ (actor.xH-3) ]
-	    - heightmap[ (actor.xH+3) ]
+	    heightmap[ (actor.xH-5) ]
+	    - heightmap[ (actor.xH+5) ]
 	    );
 
 	if( flipped ) incline = -incline;
-	actor.speedX -= incline << 3;
+	actor.speedX -= incline << 4;
 	
 	if( actor.speedX < 0 ) incline = -incline;
 	actor.targetY -= incline;
@@ -42,10 +60,8 @@ bool doPhysics( CycleActor &actor, bool flipped ){
 	
     }
     
-    actor.y += actor.targetY << 4;
-    actor.targetY -= actor.targetY >> 4;
     actor.speedX -= actor.speedX >> 8;
-    actor.wx += actor.speedX;
+    actor.wx += actor.speedX >> 2;
     actor.x = actor.wx - offsetX;
 
     return contact;
@@ -126,6 +142,9 @@ void drawLandscapeSection( int16_t x0, int16_t y0, int16_t x1, int16_t y1 ){
 }
 
 void drawLandscape(){
+    prevDelta = int32_t( offsetX - prevOffsetX ) >> 8;
+    prevOffsetX = offsetX;
+
     uint16_t x = offsetX >> 8;
     uint8_t cx = x >> 5;
     int8_t cc = - (x & 0x1F);

@@ -4,15 +4,16 @@ STATE( RaceMode,
        },
        {
 	   
-	   seed = 0x1234;
+	   seed = 0x3095;
 	   seedSequence = 0;
 	   clearScreen = CLEAR_GRAY;
 
 	   after.init();
 	   initLandscape();
+	   score = -8;
 
 	   for( uint8_t i=0; i<6; ++i ){
-	       scope.actors[i].init();
+	       scope.actors[i].init().setAnimation(&enemyanim);
 	       scope.actors[i].mode = 0;
 	   }
 
@@ -23,10 +24,23 @@ STATE( RaceMode,
 	       .frame = 0;
 	   scope.actors[0].mode = 1;
 
+	   effect = PSTR("Go!");
+
        },
        {
 	   
 	   drawLandscape( );
+
+	   score += abs(prevDelta) >> 3;
+	   level += abs(prevDelta);
+	   uint32_t lsd = level >> 8;
+	   if( lsd > 255 ) lsd = 255;
+	   if( ttspawn >= 0 ) ttspawn -= lsd;
+
+	   arduboy.setCursor(1,1);
+	   arduboy.print( score );
+	   arduboy.print( F("  ") );
+	   arduboy.print( reinterpret_cast<const __FlashStringHelper *>(effect) );
 
 	   for( uint8_t i=0; i<6; ++i ){
 	       
@@ -41,27 +55,6 @@ STATE( RaceMode,
 	       
 	       controllers[ scope.actors[i].mode ]( scope.actors[i], scope.actors );
 	   }
-	   	   
-	   /*
-	 after.update();	 
-	 move();
-	 scope.ground.render();
-	 updateEnemies();
-	   
-	 scope.player.checkCollision(
-				     enemies,
-				     MAX_ENEMY_COUNT,
-				     []( Actor *a ){
-				       auto e = (Enemy *) a;
-				       if( e->timeAlive ){
-					 changeState( State::FightMode, 0 );
-				       }
-				     });
-	   */
-       },
-
-       void move(){
-	   
        }
        
        )
