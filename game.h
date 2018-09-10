@@ -145,7 +145,7 @@ struct Actor;
 
 Actor *drawQueue[ 32 ];
 uint8_t queueSize;
-typedef void (*CollisionCB)(Actor *other);
+// typedef void (*CollisionCB)(Actor *other);
 
 struct Actor {
     union{
@@ -250,6 +250,7 @@ struct Actor {
 	return *this;
     }
 
+    template <typename CollisionCB>
     void checkCollision(
 	Actor *check,
 	uint8_t checkStride,
@@ -269,7 +270,7 @@ struct Actor {
 	}
     }
 
-    template< typename T > void checkCollision(
+    template< typename T, typename CollisionCB > void checkCollision(
 	T *target,
 	uint8_t count,
 	CollisionCB cb

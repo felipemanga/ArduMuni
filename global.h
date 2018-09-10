@@ -23,6 +23,7 @@ public:
     uint32_t wx;
     int16_t speedX;
     uint8_t mode;
+    uint8_t noCollision;
 };
 
 struct {

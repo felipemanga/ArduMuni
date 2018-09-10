@@ -28,8 +28,19 @@ STATE( RaceMode,
 	   
 	   drawLandscape( );
 
-	   for( uint8_t i=0; i<6; ++i )
-	       controllers[ scope.actors[i].mode ]( scope.actors[i] );
+	   for( uint8_t i=0; i<6; ++i ){
+	       
+	       if( scope.actors[i].noCollision ){
+		   scope.actors[i].noCollision--;
+		   if( !scope.actors[i].noCollision ){
+		       scope.actors[i].flags &= ~ANIM_GRAY;
+		   }else{
+		       scope.actors[i].flags |= ANIM_GRAY;
+		   }
+	       }
+	       
+	       controllers[ scope.actors[i].mode ]( scope.actors[i], scope.actors );
+	   }
 	   	   
 	   /*
 	 after.update();	 

@@ -1,12 +1,30 @@
-using Controller = void (*)( CycleActor & );
+using Controller = void (*)( CycleActor &, CycleActor * );
+using Effect = void (*)( CycleActor &target );
+
+void killActor( CycleActor &a ){
+    a.hide();
+    a.mode = 0;
+}
+
+Effect effects[] = {
+    
+    []( CycleActor &t ){ t.speedX <<= 1; },
+    []( CycleActor &t ){ t.speedX = 0; },
+    []( CycleActor &t ){ t.speedX = -t.speedX; },
+    []( CycleActor &t ){ t.targetY = t.frame >= 5 ? 200 : -200; },
+    []( CycleActor &t ){ t.noCollision = 50; },
+    []( CycleActor &t ){ t.noCollision = 150; },
+    
+
+};
 
 Controller controllers[] = {
 
 // dead
-    []( CycleActor &a ){},
+    []( CycleActor &a, CycleActor * ){},
 
 // player controller
-    []( CycleActor &a ){
+    []( CycleActor &a, CycleActor *all ){
 
 	if( doPhysics( a, a.frame >= 5 ) ){
 	       
@@ -37,6 +55,23 @@ Controller controllers[] = {
 		a.targetY += flipped ? 70 : -70;
 	    }
 	       
+	}
+
+	if( !a.noCollision ){
+	    a.checkCollision(
+		all,
+		6,
+		[&]( Actor *othera ){
+		    CycleActor *other = static_cast<CycleActor *>(othera);
+		
+		    if( other->mode <= 1 )
+			return;
+
+		    effects[ (other->mode-2)%( sizeof(effects)/sizeof(effects[0])) ]( a );
+
+		    killActor( *other );
+		
+		});
 	}
 
 	offsetX = a.wx - (0x4000);
